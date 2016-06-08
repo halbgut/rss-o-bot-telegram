@@ -1,8 +1,9 @@
 {
   "name": "rss-o-bot-telegram",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A Telegram notifier for RSS-o-Bot",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "bin": "dist/cli.js",
   "scripts": {
     "build": "babel --presets babel-preset-es2015 src --out-dir dist",
     "watch-build": "watch 'npm run build -- --source-maps' src",
