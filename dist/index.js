@@ -5,9 +5,9 @@ var Rx = require('rx');
 
 module.exports = function telegram(config) {
   var tg = Tg(config['telegram-api-token']);
-  return function (subject, message) {
+  return function (subject, url, title) {
     return Rx.Observable.forkJoin(config['telegram-recipients'].map(function (r) {
-      return Rx.Observable.fromPromise(tg.sendMessage(r, subject + ' \n' + message));
+      return Rx.Observable.fromPromise(tg.sendMessage(r, subject + ' \n' + title + ': ' + url));
     }));
   };
 };
