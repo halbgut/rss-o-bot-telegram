@@ -3,7 +3,7 @@
 const Tg = require('tg-yarl')
 const Rx = require('rx')
 const O = Rx.Observable
-const config = require('rss-o-bot').config
+const rssOBot = require('rss-o-bot')
 
 const help =
 `rss-o-bot-telegram poll
@@ -19,16 +19,19 @@ const help =
 const action = process.argv[2]
 
 if (action === 'poll') {
-  const tg = Tg(config['telegram-api-token'])
-  O.interval(1000).startWith(0)
-    .flatMap(() => O.fromPromise(tg.getUpdates()))
-    .map(res => res.body.ok
-      ? res.body.result.slice(-1)[0]
-      : null
+  rssOBot.getConfig()
+    .map(config => Tg(config.get('telegram-api-token')))
+    .flatMap(tg =>
+      O.interval(1000).startWith(0)
+        .flatMap(() => O.fromPromise(tg.getUpdates()))
+        .map(res => res.body.ok
+          ? res.body.result.slice(-1)[0]
+          : null
+        )
+        .distinctUntilChanged(update => update ? update.update_id : null)
+        .map(update => update ? update.message.from.id : null)
     )
-    .distinctUntilChanged(update => update ? update.update_id : null)
-    .map(update => update ? update.message.from.id : null)
-    .subscribe(console.log, console.error, () => process.exit())
+    .subscribe(console.log, console.error)
 } else {
   console.log(help)
 }
