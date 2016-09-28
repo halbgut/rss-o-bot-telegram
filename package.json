@@ -1,6 +1,6 @@
 {
   "name": "rss-o-bot-telegram",
-  "version": "0.2.0",
+  "version": "1.0.0-rc.0",
   "description": "A Telegram notifier for RSS-o-Bot",
   "main": "dist/index.js",
   "bin": "dist/cli.js",
