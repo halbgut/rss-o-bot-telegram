@@ -21,7 +21,7 @@
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
     "babel-preset-es2015": "^6.9.0",
-    "watch": "^0.18.0"
+    "watch": "^0.19.2"
   },
   "peerDependencies": {
     "rss-o-bot": "1.0.x"
