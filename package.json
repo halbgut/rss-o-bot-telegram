@@ -7,7 +7,8 @@
   "scripts": {
     "build": "babel src --out-dir dist",
     "watch-build": "watch 'npm run build -- --source-maps' src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublish": "npm run build"
   },
   "keywords": [
     "RSS-o-Bot",
