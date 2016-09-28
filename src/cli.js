@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const Tg = require('tg-yarl')
-const Rx = require('rx')
+const Rx = require('rxjs/Rx')
 const O = Rx.Observable
 const rssOBot = require('rss-o-bot')
 

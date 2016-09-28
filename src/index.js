@@ -1,5 +1,5 @@
 const Tg = require('tg-yarl')
-const Rx = require('rx')
+const Rx = require('rxjs/Rx')
 
 module.exports = function telegram (config) {
   const tg = Tg(config.get('telegram-api-token'))
