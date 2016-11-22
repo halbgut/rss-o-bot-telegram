@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const { spawn } = require('child_process')
 const Tg = require('tg-yarl')
 const Rx = require('rxjs/Rx')
 const O = Rx.Observable
@@ -18,18 +19,54 @@ const help =
 
 const action = process.argv[2]
 
-if (action === 'poll') {
+const instantiate = () =>
   rssOBot.getConfig()
-    .map(config => Tg(config.get('telegram-api-token')))
-    .flatMap(tg =>
-      O.interval(1000).startWith(0)
-        .flatMap(() => O.fromPromise(tg.getUpdates()))
-        .map(res => res.body.ok
-          ? res.body.result.slice(-1)[0]
-          : null
+    .map(config => [config, Tg(config.get('telegram-api-token'))])
+
+const poll = (filter = false) => ([config, tg]) =>
+  O.interval(2000)
+    .startWith(0)
+    .switchMap(() => O.fromPromise(tg.getUpdates(-1)))
+    .switchMap(res => res.body.ok
+      ? O.of(res.body.result)
+      : O.throw([res.status, res.body])
+    )
+    .concatMap(v => O.from(v))
+    .filter(v =>
+      !filter ||
+      // If `filter` is true, check that the sender is in `telegram-commanders`
+      config
+        .get('telegram-commanders')
+        .includes(v.message.from.id.toString())
+    )
+    .distinctUntilChanged((a, b) => b.update_id === a.update_id)
+    .skip(1)
+
+const runCommand = args => O.create(o => {
+  const proc = spawn('rss-o-bot', args)
+  let data = ''
+  proc.stdout.on('data', x => { data += x })
+  proc.stdout.on('error', x => { data += x })
+  proc.on('close', () => {
+    o.next(data)
+  })
+})
+
+if (action === 'poll') {
+  instantiate()
+    .switchMap(poll())
+    .map(update => update ? update.message.from.id : null)
+    .filter(a => a)
+    .subscribe(console.log, console.error)
+} else if (action === 'run') {
+  instantiate()
+    .switchMap(([config, tg]) =>
+      poll(true)([config, tg])
+        .concatMap(t =>
+          runCommand(t.message.text.split(' '))
+            .switchMap(data => data.split('\n'))
+            .concatMap(msg => O.fromPromise(tg.sendMessage(t.message.chat.id, msg)))
         )
-        .distinctUntilChanged(update => update ? update.update_id : null)
-        .map(update => update ? update.message.from.id : null)
     )
     .subscribe(console.log, console.error)
 } else {
