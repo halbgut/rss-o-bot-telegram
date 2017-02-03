@@ -20,7 +20,6 @@ const action = process.argv[2]
 if (action === 'poll') {
   instantiate()
     .switchMap(poll())
-    .filter(update => update)
     .map(update => update.message.from.id)
     .subscribe(console.log, console.error)
 } else if (action === 'run') {
@@ -29,7 +28,17 @@ if (action === 'poll') {
       poll(true)([config, tg])
         .concatMap(t =>
           runCommand(t.message.text.split(' '))
-            .concatMap(v => O.from(v.split(1000)))
+            .concatMap(v => O.from(
+              v.split('\n').reduce((m, s) => {
+                const last = m.length - 1
+                if (!m[last] || m[last].length + s.length > 2500) {
+                  return m.concat(s)
+                } else {
+                  m[last] += '\n' + s
+                  return m
+                }
+              }, [])
+            ))
             .concatMap(sendMessage(tg, t))
         )
     )

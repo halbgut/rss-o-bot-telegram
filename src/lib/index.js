@@ -23,7 +23,8 @@ module.exports.poll = (filter = false) => ([config, tg]) =>
       ? O.of(res.body.result)
       : O.throw([res.status, res.body])
     )
-    .concatMap(v => O.from(v))
+    .map(v => v[0])
+    .filter(v => v && v.message)
     .filter(v =>
       !filter ||
       // If `filter` is true, check that the sender is in `telegram-commanders`
@@ -35,11 +36,12 @@ module.exports.poll = (filter = false) => ([config, tg]) =>
     .skip(1)
 
 module.exports.runCommand = args => O.create(o => {
-  const proc = spawn('rss-o-bot', args)
+  const proc = spawn('rss-o-bot', args.concat('--ugly'))
   let data = ''
   proc.stdout.on('data', x => { data += x })
-  proc.stdout.on('error', x => { data += x })
+  proc.stderr.on('data', x => { data += x })
   proc.on('close', () => {
     o.next(data)
+    o.complete()
   })
 })
